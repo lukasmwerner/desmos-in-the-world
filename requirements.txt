@@ -1,3 +1,6 @@
 opencv-contrib-python
 matplotlib
 numpy
+sympy
+screeninfo
+python-dotenv
