@@ -44,7 +44,6 @@ def main():
     cv2.waitKey()
 
     has_frame, frame = source.read()
-    cv2.imwrite("camerafile.png", frame)
 
     ok, camera_corners = cv2.findChessboardCorners(frame, (9, 6))
     print("Found camera corners:", ok)
