@@ -12,34 +12,34 @@
 )
 
 #let metadata = (
-  graphs: (
-    num: 4,
-    offset: 0,
+  (
     name: "graph",
+    num: 2,
+    offset: 0,
     flipped: true,
   ),
-  equations: (
-    num: 4,
-    offset: 200,
+  (
     name: "eqn",
+    num: 24,
+    offset: 200,
     flipped: false,
   ),
-  add: (
-    num: 4,
-    offset: 400,
+  (
     name: "add",
+    num: 2,
+    offset: 400,
     flipped: false,
   ),
-  range: (
+  (
+    name: "range",
     num: 4,
     offset: 600,
-    name: "range",
     flipped: false,
   ),
-  gemini: (
-    num: 4,
-    offset: 800,
+  (
     name: "confirm",
+    num: 12,
+    offset: 800,
     flipped: false,
   ),
 )
@@ -78,6 +78,6 @@
   }
 }
 
-#for item in metadata.values() {
+#for item in metadata {
   generate(item)
 }
