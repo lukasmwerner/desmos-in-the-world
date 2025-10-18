@@ -37,7 +37,7 @@ while cv2.waitKey(1) != ord("q"):
             marker_corner_list.reshape(-1, 1, 2), camera_to_monitor
         )
         monitor_frame = cv2.fillPoly(
-            monitor_frame, [points.astype(np.uint8)], (0, 255, 255)
+            monitor_frame, [points.astype(np.int32)], (0, 255, 255)
         )
 
     cv2.imshow(win_name, monitor_frame)
