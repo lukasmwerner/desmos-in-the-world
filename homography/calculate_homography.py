@@ -8,12 +8,14 @@ import pickle
 
 load_dotenv("../.env")
 
+
 def resize_image(inner_image, outer_image):
     w1, h1 = inner_image.shape[1], inner_image.shape[0]
     w2, h2 = outer_image.shape[1], outer_image.shape[0]
 
     scale = min(w2 / w1, h2 / h1)
     return cv2.resize(inner_image, (int(w1 * scale), int(h1 * scale)))
+
 
 def main():
     monitor = get_monitors()[0]
@@ -39,18 +41,19 @@ def main():
 
     cv2.imshow(win_name, monitor_frame)
 
+    cv2.waitKey()
+
     has_frame, frame = source.read()
     cv2.imwrite("camerafile.png", frame)
 
     ok, camera_corners = cv2.findChessboardCorners(frame, (9, 6))
     print("Found camera corners:", ok)
 
-    # camera_to_monitor = cv2.findHomography(camera_corners, monitor_corners)
-    # with open("camera_to_monitor.pck", "wb") as pickle_file:
-    #     pickle.dump(camera_to_monitor, pickle_file)
+    camera_to_monitor, mask = cv2.findHomography(camera_corners, monitor_corners)
+    with open("camera_to_monitor.pck", "wb") as pickle_file:
+        pickle.dump(camera_to_monitor, pickle_file)
 
     source.release()
-    cv2.waitKey(1000)
     cv2.destroyAllWindows()
 
 
