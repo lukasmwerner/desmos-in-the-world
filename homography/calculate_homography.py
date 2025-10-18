@@ -17,6 +17,7 @@ def resize_image(inner_image, outer_image):
 
 def main():
     monitor = get_monitors()[0]
+    source = cv2.VideoCapture(int(os.getenv("WEBCAM_ID")))
 
     dict_key = cv2.aruco.DICT_4X4_1000
     aruco_dict = cv2.aruco.getPredefinedDictionary(dict_key)
@@ -33,20 +34,22 @@ def main():
     rs_h, rs_w = resized_image.shape[:2]
 
     monitor_frame[:rs_h, :rs_w] = resized_image
-    ok, monitor_corners = cv2.findChessboardCorners(image, (9, 6))
+    ok, monitor_corners = cv2.findChessboardCorners(monitor_frame, (9, 6))
+    print("Found monitor corners:", ok)
 
     cv2.imshow(win_name, monitor_frame)
 
-    time.sleep(250)
-    source = cv2.VideoCapture(os.getenv("WEBCAM_ID"))
     has_frame, frame = source.read()
+    cv2.imwrite("camerafile.png", frame)
 
     ok, camera_corners = cv2.findChessboardCorners(frame, (9, 6))
+    print("Found camera corners:", ok)
 
-    camera_to_monitor = cv2.findHomography(camera_corners, monitor_corners)
-    with open("camera_to_monitor.pck", "wb") as pickle_file:
-        pickle.dump(camera_to_monitor, pickle_file)
+    # camera_to_monitor = cv2.findHomography(camera_corners, monitor_corners)
+    # with open("camera_to_monitor.pck", "wb") as pickle_file:
+    #     pickle.dump(camera_to_monitor, pickle_file)
 
+    source.release()
     cv2.waitKey(1000)
     cv2.destroyAllWindows()
 

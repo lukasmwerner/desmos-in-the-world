@@ -1,12 +1,16 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 dict_key = cv2.aruco.DICT_4X4_1000
 aruco_dict = cv2.aruco.getPredefinedDictionary(dict_key)
 aruco_detector = cv2.aruco.ArucoDetector(aruco_dict)
 
-source = cv2.VideoCapture(1)
+source = cv2.VideoCapture(int(os.getenv("WEBCAM_ID")))
 win_name = "desmos-irl"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 cv2.setWindowProperty(win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
