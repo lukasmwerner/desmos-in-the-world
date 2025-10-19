@@ -35,7 +35,7 @@ class EquationComponent:
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
-    def compute_content(self):
+    async def compute_content(self):
         if self.computed is not None:
             return self.computed
 
