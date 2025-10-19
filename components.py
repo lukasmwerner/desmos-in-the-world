@@ -261,9 +261,28 @@ class MultiplyComponent:
         return math.prod(self.inputs)
 
     def compute_content(self):
-        return self.get_equation()
+        try:
+            func = self.get_equation()
+            p = sympy.plotting.plot((func, (-5, 5)), show=False)
+            p.process_series()
+            return func
+        except:
+            self.does_output = False
 
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        if not self.does_output:
+            camera_box = (
+                self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
+            )
+            monitor_box = (
+                cv2.perspectiveTransform(camera_box, camera_to_monitor)
+                .reshape(-1, 2)
+                .astype(np.int32)
+            )
+
+            cv2.fillPoly(canvas_bgr, [monitor_box], color=(0, 0, 255))
+            return
+
         equation = self.get_equation()
         latex = sympy.latex(equation)
 
