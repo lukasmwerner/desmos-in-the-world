@@ -2,43 +2,9 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import typing
 from dotenv import load_dotenv
-from dataclasses import dataclass
 
-
-@dataclass
-class Marker:
-    # this type is kinda scuffed? but this is a hackathon
-    tl: typing.Iterable[int]
-    tr: typing.Iterable[int]
-    br: typing.Iterable[int]
-    bl: typing.Iterable[int]
-
-
-@dataclass
-class Box:
-    tl: Marker
-    tr: Marker
-    bl: Marker 
-    br: Marker
-
-    def inner_coordinates(self):
-        return np.array((
-            self.tl.br,
-            self.tr.bl,
-            self.br.tl,
-            self.bl.tr,
-        ), np.int32)
-
-    def outer_coordinates(self):
-        return np.array((
-            self.tl.tl,
-            self.tr.tr,
-            self.br.br,
-            self.bl.bl,
-        ), np.int32)
-
+import geometry
 
 
 load_dotenv()
@@ -69,7 +35,7 @@ while cv2.waitKey(1) != ord('q'):
         if id % 4 == 0:
             possible_ids = list(range(id, id+4))
             if all(map(lambda pid: pid in corners, possible_ids)):
-                boxes.append(Box(*(Marker(*corners[pid]) for pid in possible_ids)))
+                boxes.append(geometry.Box(*(geometry.Marker(*corners[pid]) for pid in possible_ids)))
 
     for box in boxes:
         cv2.polylines(
