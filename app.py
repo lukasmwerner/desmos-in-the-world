@@ -130,6 +130,21 @@ def connect_components(components, blank_frame, camera_to_monitor):
         )
         top_left, top_right, _, _ = transformed_pts
 
+        midpoint = (top_left + top_right) / 2.0
+
+        vector_top = top_left - top_right
+        vector_scale = 3.0
+        orthogonal_vector = np.array(
+            [-vector_top[1] * vector_scale, vector_top[0] * vector_scale],
+            dtype=np.float32,
+        )
+
+        p1 = tuple(np.round(midpoint).astype(int))
+        p2 = tuple(np.round(midpoint + orthogonal_vector).astype(int))
+
+        # Build shapely geometries from transformed monitor coordinates
+        line = LineString([tuple(midpoint), tuple((midpoint + orthogonal_vector))])
+
         for other_component_id in components:
             other_component = components[other_component_id]
             if component_id == other_component_id:
@@ -142,55 +157,16 @@ def connect_components(components, blank_frame, camera_to_monitor):
             ).reshape(-1, 2)
             other_outer_points = transformed_other
 
-            midpoint = (top_left + top_right) / 2.0
-
-            vector_top = top_left - top_right
-            vector_scale = 3.0
-            orthogonal_vector = np.array(
-                [-vector_top[1] * vector_scale, vector_top[0] * vector_scale],
-                dtype=np.float32,
-            )
-
-            # Build shapely geometries from transformed monitor coordinates
-            line = LineString([tuple(midpoint), tuple((midpoint + orthogonal_vector))])
             other_shape = Polygon(other_outer_points.tolist())
 
             intersection = line.intersection(other_shape)
 
             if not intersection.is_empty:
                 connections[component_id] = other_component_id
+                p2 = tuple(np.round(intersection.coords[0]).astype(int))
+                break
 
-            # extract a point to draw to (if available)
-            found = None
-            if intersection.is_empty:
-                found = None
-            elif intersection.geom_type == "Point":
-                found = (intersection.x, intersection.y)
-            elif intersection.geom_type in ("LineString", "LinearRing"):
-                found = tuple(intersection.coords)[0]
-            else:
-                # try to get first geometry
-                try:
-                    geoms = list(intersection.geoms)
-                    for g in geoms:
-                        if g.geom_type == "Point":
-                            found = (g.x, g.y)
-                            break
-                        if g.geom_type in ("LineString", "LinearRing"):
-                            found = tuple(g.coords)[0]
-                            break
-                except Exception:
-                    found = None
-
-            if found is None:
-                line_end = (midpoint + orthogonal_vector).astype(np.float32)
-            else:
-                line_end = np.array(found, dtype=np.float32)
-
-            # draw using integer pixel coordinates
-            p1 = tuple(np.round(midpoint).astype(int))
-            p2 = tuple(np.round(line_end).astype(int))
-            cv2.line(blank_frame, p1, p2, (0, 255, 255), 5)
+        cv2.line(blank_frame, p1, p2, (0, 255, 255), 5)
 
     return connections
 
