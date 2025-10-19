@@ -43,16 +43,15 @@ while cv2.waitKey(1) != ord("q"):
         zip((id_[0] for id_ in marker_ids), (corner[0] for corner in marker_corners))
     )
 
-    boxes = []
-    for id, corner in corners.items():
-        if id % 4 == 0:
-            possible_ids = list(range(id, id + 4))
-            if all(map(lambda pid: pid in corners, possible_ids)):
-                boxes.append(
-                    geometry.Box(
-                        *(geometry.Marker(*corners[pid]) for pid in possible_ids)
-                    )
-                )
+    boxes = [
+        geometry.Box(
+            *(geometry.Marker(*corners[pid]) for pid in possible_ids)
+        )
+        for id, corner in corners.items()
+        if (id % 4 == 0) and all(
+            pid in corners for pid in (possible_ids := list(range(id, id + 4)))
+        )
+    ]
 
     for box in boxes:
         inner_coordinates = cv2.perspectiveTransform(
