@@ -92,6 +92,11 @@ class EquationComponent:
             )
             tags_dict[self.id] = eqn
 
+            # avoiblding continiously displaying the polling render screen 
+            loading_frame = self.frame.copy()
+            cv2.circle(loading_frame, center, 20, (0, 0, 0), -1)
+
+
             # Make sure this function can be plotted
             p = sympy.plotting.plot((eqn, (-5, 5)), show=False)
             p.process_series()
