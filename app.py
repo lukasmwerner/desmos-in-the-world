@@ -77,7 +77,7 @@ def create_component(id, box, frame):
         pass
     elif category == 1:
         # Equations
-        component = components.EquationComponent(box, frame)
+        component = components.EquationComponent(id, box, frame)
         component.get_content()
     elif category == 2:
         # Add

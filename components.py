@@ -6,9 +6,25 @@ import numpy as np
 
 from geometry import Box
 
+import os
+from google import genai
+from dotenv import load_dotenv
+from PIL import Image
+import sympy
+
+tags_dict = {}
+for i in range(200, 400):
+    tags_dict[i] = None
+
+
+def make_gemini_client():
+    client = genai.Client(api_key= os.getenv("GEMINI_API_KEY"))
+    return client
+
 
 @dataclass
 class EquationComponent:
+    int: id
     box: Box
     frame: np.ndarray
 
@@ -42,5 +58,16 @@ class EquationComponent:
             self.frame, transform, (rectangle_width, rectangle_height)
         )
 
-        cv2.imwrite("warped_eq.png", warped_image)
-        return warped_image
+        client = make_gemini_client()
+        img = Image.fromarray(warped_image)
+
+        eqn = sympy.sympify(client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[
+            img,
+            'ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)'
+            ]
+        ).text)
+        tags_dict[self.id] = eqn
+
+        return eqn
