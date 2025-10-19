@@ -27,6 +27,7 @@ class EquationComponent:
     id: int
     box: Box
     frame: np.ndarray
+    connects_to = None
 
     # Warp box to a rectangle
     # pass to gemini.py
@@ -61,13 +62,15 @@ class EquationComponent:
         client = make_gemini_client()
         img = Image.fromarray(warped_image)
         try:
-            eqn = sympy.sympify(client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=[
-                img,
-                'ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)'
-                ]
-            ).text)
+            eqn = sympy.sympify(
+                client.models.generate_content(
+                    model="gemini-2.5-flash",
+                    contents=[
+                        img,
+                        "ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)",
+                    ],
+                ).text
+            )
             tags_dict[self.id] = eqn
         except ValueError as e:
             return ""
@@ -80,6 +83,8 @@ class GraphComponent:
     id: int
     box: Box
     frame: np.ndarray
+    inputs: list
+    connects_to = None
 
     # Render a graph on the picture
     # warped to the box.

@@ -1,3 +1,4 @@
+from collections import defaultdict, deque
 import pickle
 import cv2
 import numpy as np
@@ -41,6 +42,8 @@ def main():
             )
         )
 
+        components = {}
+
         for id, corner in corners.items():
             if id % 4 == 0:
                 possible_ids = list(range(id, id + 4))
@@ -48,39 +51,23 @@ def main():
                     box = geometry.Box(
                         *(geometry.Marker(*corners[pid]) for pid in possible_ids)
                     )
-                    create_component(id, box, frame, blank_frame, camera_to_monitor)
+                    components[id] = create_component(id, box, frame)
 
-        # for box in boxes:
-        #     inner_coordinates = cv2.perspectiveTransform(
-        #         box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2),
-        #         camera_to_monitor,
-        #     )
-
-        #     cv2.polylines(
-        #         blank_frame,
-        #         inner_coordinates.astype(np.int32).reshape((1, -1, 1, 2)),
-        #         True,
-        #         (255, 255, 0),
-        #         20,
-        #     )
-
+        process_components(components, frame, blank_frame, camera_to_monitor)
         cv2.imshow(win_name, blank_frame)
 
     source.release()
     cv2.destroyAllWindows()
 
 
-def create_component(id, box, frame, canvas_bgr, camera_to_monitor):
+def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        component = components.GraphComponent(id, box, frame)
-        component.render(canvas_bgr, camera_to_monitor)
+        return components.GraphComponent(id, box, frame)
     elif category == 1:
         # Equations
-        component = components.EquationComponent(id, box, frame)
-        if (component.get_content() == ""):
-            return None
+        return components.EquationComponent(id, box, frame)
     elif category == 2:
         # Add
         pass
@@ -90,6 +77,36 @@ def create_component(id, box, frame, canvas_bgr, camera_to_monitor):
     else:
         # Gemini
         pass
+
+
+def process_components(components, blank_frame, camera_to_monitor):
+    indegrees = defaultdict(int)
+    for component_id in components:
+        if components[component_id].connects_to is not None:
+            indegrees[components[component_id].connects_to] += 1
+
+    q = deque()
+
+    for component_id in components:
+        if indegrees[component_id] == 0:
+            q.append(component_id)
+
+    while q:
+        component_id = q.popleft()
+
+        # process component
+        if hasattr(components[component_id], "get_content"):
+            content = components[component_id].get_content()
+            if components[component_id].connects_to is not None:
+                if hasattr(components[component_id].connects_to, "inputs"):
+                    components[component_id].connects_to.inputs.append(content)
+        if hasattr(components[component_id], "render"):
+            component_id[component_id].render(blank_frame, camera_to_monitor)
+
+        if components[component_id].connects_to is not None:
+            indegrees[components[component_id].connects_to] -= 1
+            if indegrees[components[component_id].connects_to] == 0:
+                q.append(components[component_id].connects_to)
 
 
 if __name__ == "__main__":
