@@ -18,13 +18,13 @@ for i in range(200, 400):
 
 
 def make_gemini_client():
-    client = genai.Client(api_key= os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     return client
 
 
 @dataclass
 class EquationComponent:
-    id : int
+    id: int
     box: Box
     frame: np.ndarray
 
@@ -73,3 +73,47 @@ class EquationComponent:
             return ""
 
         return eqn
+
+
+@dataclass
+class GraphComponent:
+    id: int
+    box: Box
+    frame: np.ndarray
+
+    # Render a graph on the picture
+    # warped to the box.
+    def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
+
+        gh, gw = graph_bgr.shape[:2]
+        source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
+
+        # Map the box inner corners from camera -> monitor
+        inner_cam = self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
+        inner_mon = (
+            cv2.perspectiveTransform(inner_cam, camera_to_monitor)
+            .reshape(-1, 2)
+            .astype(np.float32)
+        )
+
+        # Homography: graph image -> monitor space
+        H_graph_to_monitor = cv2.getPerspectiveTransform(source, inner_mon)
+
+        out_h, out_w = canvas_bgr.shape[:2]
+        warped = cv2.warpPerspective(
+            graph_bgr,
+            H_graph_to_monitor,
+            (out_w, out_h),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=(0, 0, 0),
+        )
+
+        # Simple binary mask: copy non-black pixels
+        mask = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+        mask_bool = mask.astype(bool)
+
+        # Paste onto canvas
+        canvas_bgr[mask_bool] = warped[mask_bool]

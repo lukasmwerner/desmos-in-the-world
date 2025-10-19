@@ -48,7 +48,7 @@ def main():
                     box = geometry.Box(
                         *(geometry.Marker(*corners[pid]) for pid in possible_ids)
                     )
-                    create_component(id, box, frame)
+                    create_component(id, box, frame, blank_frame, camera_to_monitor)
 
         # for box in boxes:
         #     inner_coordinates = cv2.perspectiveTransform(
@@ -70,11 +70,12 @@ def main():
     cv2.destroyAllWindows()
 
 
-def create_component(id, box, frame):
+def create_component(id, box, frame, canvas_bgr, camera_to_monitor):
     category = id // 200
     if category == 0:
         # Graph
-        pass
+        component = components.GraphComponent(id, box, frame)
+        component.render(canvas_bgr, camera_to_monitor)
     elif category == 1:
         # Equations
         component = components.EquationComponent(id, box, frame)
