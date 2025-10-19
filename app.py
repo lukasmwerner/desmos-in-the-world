@@ -93,11 +93,12 @@ def create_component(id, box, frame):
         # Equations
         return EquationComponent(id, box, frame)
     elif category == 2:
-        # Add
         return AddComponent(id, box)
-    else:
+    elif category == 3:
         # Range input
         pass
+    elif category == 4:
+        return MultiplyComponent(id, box)
 
 
 async def process_components(components, blank_frame, camera_to_monitor, connections):
