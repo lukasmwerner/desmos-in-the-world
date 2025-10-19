@@ -91,9 +91,8 @@ class GraphComponent:
     box: Box
     frame: np.ndarray
     inputs: set
-    graph: dict = field(default_factory=dict)
     does_output = False
-    old_inputs: set = set()
+    old_inputs: set = field(default_factory=set)
 
     DISPLAY_DENSITY = 1
 
