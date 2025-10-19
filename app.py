@@ -27,7 +27,6 @@ def main():
     with open("homography/camera_to_monitor.pck", "rb") as pickle_file:
         camera_to_monitor = pickle.load(pickle_file)
 
-
     components = {}
 
     while cv2.waitKey(1) != ord("q"):
@@ -67,9 +66,13 @@ def main():
             if key not in new_ids:
                 del components[key]
 
-
         connections = connect_components(components, blank_frame, camera_to_monitor)
         process_components(components, blank_frame, camera_to_monitor, connections)
+
+        # Draw border
+        cv2.rectangle(
+            blank_frame, (0, 0), (monitor.width, monitor.height), (255, 255, 255), 4
+        )
         cv2.imshow(win_name, blank_frame)
 
     source.release()
@@ -114,9 +117,7 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
         if (
             isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
-            and isinstance(
-                components[connections[component_id]], GraphComponent
-            )
+            and isinstance(components[connections[component_id]], GraphComponent)
         ):
             components[connections[component_id]].inputs.append(
                 tags_dict[components[component_id].id]
