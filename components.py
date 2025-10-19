@@ -30,10 +30,15 @@ class EquationComponent:
     frame: np.ndarray
     does_output = True
 
+    computed = None
+
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
     def compute_content(self):
+        if self.computed is not None:
+            return self.computed
+
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
 
@@ -63,8 +68,6 @@ class EquationComponent:
         client = make_gemini_client()
         img = Image.fromarray(warped_image)
         try:
-            if tags_dict[self.id] != None:
-                raise ValueError()
             eqn = sympy.sympify(
                 client.models.generate_content(
                     model="gemini-2.5-flash",
@@ -78,6 +81,7 @@ class EquationComponent:
         except ValueError as e:
             return ""
 
+        self.computed = eqn
         return eqn
 
 
@@ -86,7 +90,7 @@ class GraphComponent:
     id: int
     box: Box
     frame: np.ndarray
-    inputs: list
+    inputs: set
     graph: dict = field(default_factory=dict)
     does_output = False
     old_inputs: set = set()
@@ -113,7 +117,7 @@ class GraphComponent:
                 if expr not in self.old_inputs:
                     self.eqn_to_bytearray()
                     break
-        self.old_inputs = set(self.inputs)
+        self.old_inputs = self.inputs
 
         graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
         gh, gw = graph_bgr.shape[:2]
