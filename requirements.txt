@@ -4,3 +4,4 @@ numpy
 sympy
 screeninfo
 python-dotenv
+google.genai

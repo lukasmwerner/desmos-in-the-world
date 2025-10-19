@@ -24,7 +24,7 @@ def make_gemini_client():
 
 @dataclass
 class EquationComponent:
-    int: id
+    id : int
     box: Box
     frame: np.ndarray
 
