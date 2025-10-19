@@ -70,7 +70,7 @@ class EquationComponent:
         try:
             eqn = sympy.sympify(
                 client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-2.5-flash-lite",
                     contents=[
                         img,
                         "ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)",
@@ -102,6 +102,10 @@ class GraphComponent:
 
         canvas = p.fig.canvas
         canvas.draw()
+        w, h = canvas.get_width_height()
+        self.graph = np.frombuffer(
+            canvas.buffer_rgba().tobytes(), dtype=np.uint8
+        ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
         p.save("graph.png")
         p.close()
 
