@@ -117,6 +117,10 @@ def connect_components(components, blank_frame, camera_to_monitor):
     connections = {}
 
     for component_id in components:
+
+        if not hasattr(component, "does_output") or component.does_output == False:
+            continue
+
         component = components[component_id]
         outer_points = component.box.outer_coordinates()
         # transform outer points from camera to monitor plane using homography
