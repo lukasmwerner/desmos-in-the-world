@@ -34,11 +34,14 @@ class EquationComponent:
 
     computed = None
     task = None
+    thinking = False
 
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
     async def compute_content(self):
+        self.thinking = True
+
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
         # Calculate the width and height of the destination rectangle
@@ -94,13 +97,17 @@ class EquationComponent:
 
         self.computed = eqn
         self.task = None
+        self.thinking = False
 
         return eqn
 
     # Draw a red box over the equation if it isn't valid
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        color = (0, 0, 255)
         if self.does_output:
-            return
+            if not self.thinking:
+                return
+            color = (255, 100, 0)
 
         # Map the box inner corners from camera -> monitor
         camera_box = self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
@@ -110,7 +117,7 @@ class EquationComponent:
             .astype(np.int32)
         )
 
-        cv2.fillPoly(canvas_bgr, [monitor_box], color=(0, 0, 255))
+        cv2.fillPoly(canvas_bgr, [monitor_box], color=color)
 
 
 @dataclass
