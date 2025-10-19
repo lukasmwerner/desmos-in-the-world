@@ -4,7 +4,6 @@ import math
 
 from geometry import Box
 
-import asyncio
 import cv2
 import numpy as np
 import os
@@ -55,8 +54,6 @@ class EquationComponent:
 
         if self.computed is not None:
             return self.computed
-
-        await asyncio.sleep(0)
 
         # Define destination points (a rectangle)
         dest = np.array(
@@ -111,11 +108,8 @@ class EquationComponent:
 
     # Draw a red box over the equation if it isn't valid
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        color = (0, 0, 255)
         if self.does_output:
-            if not self.thinking:
-                return
-            color = (255, 100, 0)
+            return
 
         # Map the box inner corners from camera -> monitor
         camera_box = self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
@@ -125,7 +119,7 @@ class EquationComponent:
             .astype(np.int32)
         )
 
-        cv2.fillPoly(canvas_bgr, [monitor_box], color=color)
+        cv2.fillPoly(canvas_bgr, [monitor_box], color=(0, 0, 255))
 
 
 @dataclass
