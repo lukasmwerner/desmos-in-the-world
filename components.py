@@ -146,7 +146,9 @@ class GraphComponent:
 
 @dataclass
 class GeminiComponent:
+    box: Box
     expired: bool = False
+    does_output = True
 
     def expire(self):
         expired = True

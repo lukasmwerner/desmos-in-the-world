@@ -63,7 +63,7 @@ def main():
 
                     new_ids.add(id)
 
-        for key in components.keys():
+        for key in list(components.keys()):
             if key not in new_ids:
                 del components[key]
 
@@ -94,7 +94,7 @@ def create_component(id, box, frame):
         pass
     else:
         # Gemini
-        return GeminiComponent()
+        return GeminiComponent(box)
 
 
 def process_components(components, blank_frame, camera_to_monitor, connections):
@@ -115,7 +115,7 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
             isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
             and isinstance(
-                components[connection[component_id]], GraphComponent
+                components[connections[component_id]], GraphComponent
             )
         ):
             components[connections[component_id]].inputs.append(
@@ -132,7 +132,7 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
                 and (not components[component_id].expired)
                 and isinstance(target, EquationComponent)
             ):
-                target.inputs.append(components[component_id].compute_content())
+                target.compute_content()
                 components[component_id].expire()
 
             indegrees[connections[component_id]] -= 1
