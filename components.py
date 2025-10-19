@@ -157,10 +157,11 @@ class GraphComponent:
         canvas_bgr[mask_bool] = warped[mask_bool]
 
 
+@dataclass
 class AddComponent:
     id: int
     box: Box
-    inputs: set
+    inputs: set = field(default_factory=set)
     does_output = True
 
     def compute_content(self):

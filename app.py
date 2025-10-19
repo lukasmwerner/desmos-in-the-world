@@ -94,7 +94,7 @@ def create_component(id, box, frame):
         return EquationComponent(id, box, frame)
     elif category == 2:
         # Add
-        pass
+        return AddComponent(id, box)
     else:
         # Range input
         pass
@@ -122,7 +122,7 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
         if (
             isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
-            and hasattr(connections[component_id], "inputs")
+            and hasattr(components[connections[component_id]], "inputs")
             # and isinstance(components[connections[component_id]], GraphComponent)
         ):
             components[connections[component_id]].inputs.add(
@@ -132,8 +132,9 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
         if (
             isinstance(components[component_id], AddComponent)
             and (component_id in connections)
-            and hasattr(connections[component_id], "inputs")
+            and hasattr(components[connections[component_id]], "inputs")
         ):
+            print(components[component_id].compute_content())
             components[connections[component_id]].inputs.add(
                 components[component_id].compute_content()
             )
