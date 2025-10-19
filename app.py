@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from screeninfo import get_monitors
 import geometry
 import components
+import shapely
 
 
 def main():
@@ -53,7 +54,8 @@ def main():
                     )
                     components[id] = create_component(id, box, frame)
 
-        process_components(components, blank_frame, camera_to_monitor)
+        connections = connect_components(components, blank_frame, camera_to_monitor)
+        process_components(components, blank_frame, camera_to_monitor, connections)
         cv2.imshow(win_name, blank_frame)
 
     source.release()
@@ -81,11 +83,10 @@ def create_component(id, box, frame):
         pass
 
 
-def process_components(components, blank_frame, camera_to_monitor):
+def process_components(components, blank_frame, camera_to_monitor, connections):
     indegrees = defaultdict(int)
-    for component_id in components:
-        if components[component_id].connects_to is not None:
-            indegrees[components[component_id].connects_to] += 1
+    for component_id in connections:
+        indegrees[connections[component_id]] += 1
 
     q = deque()
 
@@ -99,16 +100,80 @@ def process_components(components, blank_frame, camera_to_monitor):
         # process component
         if hasattr(components[component_id], "get_content"):
             content = components[component_id].get_content()
-            if components[component_id].connects_to is not None:
-                if hasattr(components[component_id].connects_to, "inputs"):
-                    components[component_id].connects_to.inputs.append(content)
+            if component_id in connections:
+                if hasattr(components[connections[component_id]], "inputs"):
+                    components[connections[component_id]].inputs.append(content)
+
         if hasattr(components[component_id], "render"):
             components[component_id].render(blank_frame, camera_to_monitor)
 
-        if components[component_id].connects_to is not None:
-            indegrees[components[component_id].connects_to] -= 1
-            if indegrees[components[component_id].connects_to] == 0:
-                q.append(components[component_id].connects_to)
+        if component_id in connections:
+            indegrees[connections[component_id]] -= 1
+            if indegrees[connections[component_id]] == 0:
+                q.append(connections[component_id])
+
+
+def connect_components(components, blank_frame, camera_to_monitor):
+    connections = {}
+
+    for component in components:
+        outer_points = component.box.outer_coordinates()
+        # transform outer points from camera to monitor plane using homography
+        pts = np.array(outer_points, dtype=np.float32).reshape(-1, 1, 2)
+        transformed_pts = cv2.perspectiveTransform(pts, camera_to_monitor).reshape(
+            -1, 2
+        )
+        top_left, top_right, _, _ = transformed_pts
+
+        for other_component in components:
+            if component is other_component:
+                continue
+
+            other_outer_points = other_component.box.outer_coordinates()
+            pts = np.array(other_outer_points, dtype=np.float32).reshape(-1, 1, 2)
+            transformed_other = cv2.perspectiveTransform(
+                pts, camera_to_monitor
+            ).reshape(-1, 2)
+            other_outer_points = transformed_other
+
+            midpoint = np.divide(top_left + top_right, 2)
+
+            vector_top = top_left - top_right
+            vector_scale = 3
+            orthogonal_vector = np.array(
+                [-vector_top[1] * vector_scale, vector_top[0] * vector_scale]
+            )
+
+            line = shapely.Point(midpoint, midpoint + orthogonal_vector)
+            other_shape = shapely.Polygon(other_component.box.outer_coordinates)
+
+            intersection = shapely.intersection(line, other_shape)
+
+            if not intersection.is_empty:
+                connections[component] = other_component
+
+            if hasattr(intersection, "geoms"):
+                geoms = list(intersection.geoms)
+            else:
+                geoms = [intersection]
+
+            found = None
+            for g in geoms:
+                if g.geom_type in ("Point",):
+                    found = (g.x, g.y)
+                    break
+                if g.geom_type in ("LineString", "LinearRing"):
+                    found = tuple(g.coords)[0]
+                    break
+
+            if found is None:
+                line_end = np.array(midpoint + orthogonal_vector, dtype=np.float32)
+            else:
+                line_end = np.array(found, dtype=np.float32)
+
+            cv2.line(blank_frame, midpoint, line_end, (0, 255, 255), 5)
+
+    return connections
 
 
 if __name__ == "__main__":
