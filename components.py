@@ -30,10 +30,15 @@ class EquationComponent:
     frame: np.ndarray
     does_output = True
 
+    computed = None
+
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
     def compute_content(self):
+        if computed is not None:
+            return computed
+
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
 
@@ -78,6 +83,7 @@ class EquationComponent:
         except ValueError as e:
             return ""
 
+        computed = eqn
         return eqn
 
 
@@ -86,7 +92,7 @@ class GraphComponent:
     id: int
     box: Box
     frame: np.ndarray
-    inputs: list
+    inputs: set
     equation: sympy.Expr
     graph: dict = field(default_factory=dict)
     does_output = False

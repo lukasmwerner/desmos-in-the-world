@@ -6,6 +6,7 @@ import sympy.abc
 import os
 from dotenv import load_dotenv
 from screeninfo import get_monitors
+from components import EquationComponent
 import geometry
 from components import *
 from shapely.geometry import Point, Polygon, LineString
@@ -104,6 +105,8 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
     q = deque()
 
     for component_id in components:
+        if isinstance(components[component_id], EquationComponent):
+            components[component_id].compute_content()
         if indegrees[component_id] == 0:
             q.append(component_id)
 
@@ -115,7 +118,7 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
             and (component_id in connections)
             and isinstance(components[connections[component_id]], GraphComponent)
         ):
-            components[connections[component_id]].inputs.append(
+            components[connections[component_id]].inputs.add(
                 tags_dict[components[component_id].id]
             )
 
