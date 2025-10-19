@@ -6,7 +6,6 @@ import sympy.abc
 import os
 from dotenv import load_dotenv
 from screeninfo import get_monitors
-from components import GeminiComponent
 import geometry
 from components import *
 from shapely.geometry import Point, Polygon, LineString
@@ -92,12 +91,9 @@ def create_component(id, box, frame):
     elif category == 2:
         # Add
         pass
-    elif category == 3:
+    else:
         # Range input
         pass
-    else:
-        # Gemini
-        return GeminiComponent(box)
 
 
 def process_components(components, blank_frame, camera_to_monitor, connections):
@@ -128,13 +124,6 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
 
         if component_id in connections:
             target = components[connections[component_id]]
-            if (
-                isinstance(components[component_id], GeminiComponent)
-                and (not components[component_id].expired)
-                and isinstance(target, EquationComponent)
-            ):
-                target.compute_content()
-                components[component_id].expire()
 
             indegrees[connections[component_id]] -= 1
             if indegrees[connections[component_id]] == 0:

@@ -103,9 +103,8 @@ class GraphComponent:
         self.graph = np.frombuffer(
             canvas.buffer_rgba().tobytes(), dtype=np.uint8
         ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
-        p.save('graph.png')
+        p.save("graph.png")
         p.close()
-
 
     # Render a graph on the picture
     # warped to the box.
@@ -142,13 +141,3 @@ class GraphComponent:
 
         # Paste onto canvas
         canvas_bgr[mask_bool] = warped[mask_bool]
-
-
-@dataclass
-class GeminiComponent:
-    box: Box
-    expired: bool = False
-    does_output = True
-
-    def expire(self):
-        expired = True
