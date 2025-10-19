@@ -104,7 +104,7 @@ class GraphComponent:
         self.graph = np.frombuffer(
             canvas.buffer_rgba().tobytes(), dtype=np.uint8
         ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
-        p.save("graph.png")
+        p.save(f"graph_{id}.png")
         p.close()
 
     # Render a graph on the picture
@@ -120,7 +120,7 @@ class GraphComponent:
                     break
         self.old_inputs = self.inputs
 
-        graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
+        graph_bgr = cv2.imread(f"graph_{id}.png", cv2.IMREAD_COLOR)
         gh, gw = graph_bgr.shape[:2]
         source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
 
