@@ -122,10 +122,20 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
         if (
             isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
-            and isinstance(components[connections[component_id]], GraphComponent)
+            and hasattr(connections[component_id], "inputs")
+            # and isinstance(components[connections[component_id]], GraphComponent)
         ):
             components[connections[component_id]].inputs.add(
                 tags_dict[components[component_id].id]
+            )
+
+        if (
+            isinstance(components[component_id], AddComponent)
+            and (component_id in connections)
+            and hasattr(connections[component_id], "inputs")
+        ):
+            components[connections[component_id]].inputs.add(
+                components[component_id].compute_content()
             )
 
         if hasattr(components[component_id], "render"):
