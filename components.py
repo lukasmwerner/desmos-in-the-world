@@ -103,12 +103,14 @@ class GraphComponent:
         self.graph = np.frombuffer(
             canvas.buffer_rgba().tobytes(), dtype=np.uint8
         ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
+        p.save('graph.png')
         p.close()
 
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        gh, gw = self.graph.shape[:2]
+        graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
+        gh, gw = graph_bgr.shape[:2]
         source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
 
         # Map the box inner corners from camera -> monitor
@@ -124,7 +126,7 @@ class GraphComponent:
 
         out_h, out_w = canvas_bgr.shape[:2]
         warped = cv2.warpPerspective(
-            self.graph,
+            graph_bgr,
             H_graph_to_monitor,
             (out_w, out_h),
             flags=cv2.INTER_LINEAR,
