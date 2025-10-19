@@ -12,7 +12,10 @@ import typing
 from google import genai
 from dotenv import load_dotenv
 from PIL import Image
+import matplotlib
 import matplotlib.pyplot as plt
+
+matplotlib.use("agg")
 
 tags_dict = {i: None for i in range(200, 400)}
 
