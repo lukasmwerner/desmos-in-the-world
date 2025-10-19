@@ -135,6 +135,7 @@ class GraphComponent:
         p = sympy.plotting.plot(
             *[(expr, (-5, 5)) for expr in self.inputs if expr is not None], show=False
         )
+
         p.process_series()
 
         canvas = p.fig.canvas
