@@ -101,7 +101,7 @@ def process_components(components, blank_frame, camera_to_monitor):
                 if hasattr(components[component_id].connects_to, "inputs"):
                     components[component_id].connects_to.inputs.append(content)
         if hasattr(components[component_id], "render"):
-            component_id[component_id].render(blank_frame, camera_to_monitor)
+            components[component_id].render(blank_frame, camera_to_monitor)
 
         if components[component_id].connects_to is not None:
             indegrees[components[component_id].connects_to] -= 1
