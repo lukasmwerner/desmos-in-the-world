@@ -1,3 +1,4 @@
+import pickle
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,6 +18,11 @@ source = cv2.VideoCapture(int(os.getenv("WEBCAM_ID")))
 win_name = "desmos-irl"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 cv2.setWindowProperty(win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+
+with open("camera_to_monitor.pck", "rb") as pickle_file:
+    camera_to_monitor = pickle.load(pickle_file)
+
 
 while cv2.waitKey(1) != ord("q"):
     has_frame, frame = source.read()
@@ -50,9 +56,13 @@ while cv2.waitKey(1) != ord("q"):
                 )
 
     for box in boxes:
+        inner_coordinates = cv2.perspectiveTransform(
+            box.inner_coordinates().reshape(-1, 1, 2), camera_to_monitor
+        )
+
         cv2.polylines(
-            frame,
-            box.inner_coordinates().reshape((1, -1, 1, 2)),
+            blank_frame,
+            inner_coordinates.astype(np.int32).reshape((1, -1, 1, 2)),
             True,
             (255, 255, 0),
             20,
