@@ -110,6 +110,8 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
     for component_id in components:
         if isinstance(components[component_id], EquationComponent):
             task = asyncio.create_task(components[component_id].compute_content())
+        elif isinstance(components[component_id], GraphComponent):
+            components[component_id].inputs.clear()
         if indegrees[component_id] == 0:
             q.append(component_id)
 
