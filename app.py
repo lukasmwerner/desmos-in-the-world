@@ -53,7 +53,7 @@ def main():
                     )
                     components[id] = create_component(id, box, frame)
 
-        process_components(components, frame, blank_frame, camera_to_monitor)
+        process_components(components, blank_frame, camera_to_monitor)
         cv2.imshow(win_name, blank_frame)
 
     source.release()
@@ -64,7 +64,7 @@ def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        return components.GraphComponent(id, box, frame)
+        return components.GraphComponent(id, box, frame, [])
     elif category == 1:
         # Equations
         return components.EquationComponent(id, box, frame)
