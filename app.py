@@ -18,7 +18,7 @@ win_name = "desmos-irl"
 cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 cv2.setWindowProperty(win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-while cv2.waitKey(1) != ord('q'):
+while cv2.waitKey(1) != ord("q"):
     has_frame, frame = source.read()
     blank_frame = np.zeros_like(frame)
     if not has_frame:
@@ -34,14 +34,20 @@ while cv2.waitKey(1) != ord('q'):
     print("fooey bary bazy")
 
     # print(marker_corners)
-    corners = dict(zip((id_[0] for id_ in marker_ids), (corner[0] for corner in marker_corners)))
+    corners = dict(
+        zip((id_[0] for id_ in marker_ids), (corner[0] for corner in marker_corners))
+    )
 
     boxes = []
     for id, corner in corners.items():
         if id % 4 == 0:
-            possible_ids = list(range(id, id+4))
+            possible_ids = list(range(id, id + 4))
             if all(map(lambda pid: pid in corners, possible_ids)):
-                boxes.append(geometry.Box(*(geometry.Marker(*corners[pid]) for pid in possible_ids)))
+                boxes.append(
+                    geometry.Box(
+                        *(geometry.Marker(*corners[pid]) for pid in possible_ids)
+                    )
+                )
 
     for box in boxes:
         cv2.polylines(
@@ -51,6 +57,8 @@ while cv2.waitKey(1) != ord('q'):
             (255, 255, 0),
             20,
         )
+
+    cv2.imshow(win_name, frame)
 
 source.release()
 cv2.destroyAllWindows()
