@@ -30,6 +30,7 @@ class EquationComponent:
     does_output = True
 
     computed = None
+    task = None
 
     # Warp box to a rectangle
     # pass to gemini.py
@@ -40,8 +41,6 @@ class EquationComponent:
         # Calculate the width and height of the destination rectangle
         rectangle_width = int(np.linalg.norm(src[0] - src[1]))
         rectangle_height = int(np.linalg.norm(src[1] - src[2]))
-
-        self.loading = True
 
         loading_frame = self.frame.copy()
         center = (rectangle_width // 2, rectangle_height // 2)
@@ -86,8 +85,7 @@ class EquationComponent:
             return ""
 
         self.computed = eqn
-
-        self.loading = False
+        self.task = None
 
         return eqn
 
