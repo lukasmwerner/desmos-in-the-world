@@ -202,11 +202,34 @@ class AddComponent:
     inputs: set = field(default_factory=set)
     does_output = True
 
+    def get_equation(self):
+        return sum(self.inputs)
+
     def compute_content(self):
-        return sum(list(self.inputs), 0)
+        try:
+            func = self.get_equation()
+            p = sympy.plotting.plot((func, (-5, 5)), show=False)
+            p.process_series()
+            self.does_output = True
+            return func
+        except:
+            self.does_output = False
 
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        equation = sum(list(self.inputs), 0)
+        if not self.does_output:
+            camera_box = (
+                self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
+            )
+            monitor_box = (
+                cv2.perspectiveTransform(camera_box, camera_to_monitor)
+                .reshape(-1, 2)
+                .astype(np.int32)
+            )
+
+            cv2.fillPoly(canvas_bgr, [monitor_box], color=(0, 0, 255))
+            return
+
+        equation = self.get_equation()
         latex = sympy.latex(equation)
 
         fig = plt.figure()
