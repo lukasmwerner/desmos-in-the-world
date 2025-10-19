@@ -265,6 +265,7 @@ class MultiplyComponent:
             func = self.get_equation()
             p = sympy.plotting.plot((func, (-5, 5)), show=False)
             p.process_series()
+            self.does_output = True
             return func
         except:
             self.does_output = False
