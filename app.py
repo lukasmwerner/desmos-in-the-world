@@ -159,8 +159,9 @@ def connect_components(components, blank_frame, camera_to_monitor):
             dtype=np.float32,
         )
 
-        p1 = tuple(np.round(midpoint).astype(int))
-        p2 = tuple(np.round(midpoint + orthogonal_vector).astype(int))
+        p1 = np.round(midpoint).astype(int)
+        p2 = np.round(midpoint + orthogonal_vector).astype(int)
+        min_dist = np.sum(np.absolute(p2 - p1))
 
         # Build shapely geometries from transformed monitor coordinates
         line = LineString([tuple(midpoint), tuple((midpoint + orthogonal_vector))])
@@ -183,8 +184,16 @@ def connect_components(components, blank_frame, camera_to_monitor):
 
             if not intersection.is_empty:
                 connections[component_id] = other_component_id
-                p2 = tuple(np.round(intersection.coords[0]).astype(int))
-                break
+                possible_point = np.round(intersection.coords[0]).astype(int)
+                possible_dist = np.sum(np.absolute(p2 - p1))
+                # if there are multiple intersections, choose the
+                # one with the lowest manhattan distance
+                if possible_dist < min_dist:
+                    p2 = possible_point
+                    min_dist = possible_dist
+
+        p1 = tuple(p1)
+        p2 = tuple(p2)
 
         cv2.line(blank_frame, p1, p2, (0, 255, 255), 5)
 
