@@ -34,15 +34,23 @@ class EquationComponent:
     # pass to gemini.py
     # returns a sympy object
     async def compute_content(self):
+
+        self.loading = True
+
+        # Calculate the width and height of the destination rectangle
+        rectangle_width = int(np.linalg.norm(src[0] - src[1]))
+        rectangle_height = int(np.linalg.norm(src[1] - src[2]))
+
+        loading_frame = self.frame.copy()
+        center = (rectangle_width // 2, rectangle_height // 2)
+        cv2.circle(loading_frame, center, 20, (0, 0, 255), -1)
+
         if self.computed is not None:
             return self.computed
 
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
 
-        # Calculate the width and height of the destination rectangle
-        rectangle_width = int(np.linalg.norm(src[0] - src[1]))
-        rectangle_height = int(np.linalg.norm(src[1] - src[2]))
 
         # Define destination points (a rectangle)
         dest = np.array(
@@ -80,6 +88,9 @@ class EquationComponent:
             return ""
 
         self.computed = eqn
+        
+        self.loading = False
+
         return eqn
 
 
