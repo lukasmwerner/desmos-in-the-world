@@ -130,6 +130,7 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
             isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
             and hasattr(components[connections[component_id]], "inputs")
+            and components[component_id].does_output
             # and isinstance(components[connections[component_id]], GraphComponent)
         ):
             components[connections[component_id]].inputs.add(

@@ -77,14 +77,15 @@ class EquationComponent:
                     model="gemini-2.5-flash-lite",
                     contents=[
                         img,
-                        "ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)",
+                        "ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20) IF THE GIVEN IMAGE IS NOT A MATH EQUATION, RESPOND BY SAYING 'Invalid equation'",
                     ],
                 ).text
             )
             tags_dict[self.id] = eqn
 
             # Make sure this function can be plotted
-            sympy.plotting.plot((eqn, (-5, 5)), show=False)
+            p = sympy.plotting.plot((eqn, (-5, 5)), show=False)
+            p.process_series()
         except:
             self.does_output = False
 
