@@ -1,3 +1,4 @@
+import asyncio
 from collections import defaultdict, deque
 import pickle
 import cv2
@@ -12,7 +13,7 @@ from components import *
 from shapely.geometry import Point, Polygon, LineString
 
 
-def main():
+async def main():
     dict_key = cv2.aruco.DICT_4X4_1000
     aruco_dict = cv2.aruco.getPredefinedDictionary(dict_key)
     aruco_detector = cv2.aruco.ArucoDetector(aruco_dict)
@@ -67,7 +68,7 @@ def main():
                 del components[key]
 
         connections = connect_components(components, blank_frame, camera_to_monitor)
-        process_components(components, blank_frame, camera_to_monitor, connections)
+        await process_components(components, blank_frame, camera_to_monitor, connections)
 
         # Draw border
         cv2.rectangle(
@@ -97,7 +98,7 @@ def create_component(id, box, frame):
         pass
 
 
-def process_components(components, blank_frame, camera_to_monitor, connections):
+async def process_components(components, blank_frame, camera_to_monitor, connections):
     indegrees = defaultdict(int)
     for component_id in connections:
         indegrees[connections[component_id]] += 1
@@ -106,11 +107,12 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
 
     for component_id in components:
         if isinstance(components[component_id], EquationComponent):
-            components[component_id].compute_content()
+            task = asyncio.create_task(components[component_id].compute_content())
         if indegrees[component_id] == 0:
             q.append(component_id)
 
     while q:
+        await asyncio.sleep(0)
         component_id = q.popleft()
 
         if (
@@ -202,4 +204,4 @@ def connect_components(components, blank_frame, camera_to_monitor):
 
 if __name__ == "__main__":
     load_dotenv()
-    main()
+    asyncio.run(main())

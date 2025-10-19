@@ -13,9 +13,7 @@ from google import genai
 from dotenv import load_dotenv
 from PIL import Image
 
-tags_dict = {}
-for i in range(200, 400):
-    tags_dict[i] = None
+tags_dict = {i: None for i in range(200, 400)}
 
 
 def make_gemini_client():
@@ -35,7 +33,7 @@ class EquationComponent:
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
-    def compute_content(self):
+    async def compute_content(self):
         if self.computed is not None:
             return self.computed
 
@@ -70,7 +68,7 @@ class EquationComponent:
         try:
             eqn = sympy.sympify(
                 client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-2.5-flash-lite",
                     contents=[
                         img,
                         "ONLY PROVIDE THE SYMPY STRING REQUESTED, DO NOT INCLUDE QUATATIONS. THIS IS NOT A PYTHON SCRIPT DO NOT WRITE ANY PYTHON EVER. Given this image, generate a string of the equation provided in sympy format in order for sympy to underestand in the context of a function call for evaluating a mathematical. Example: (sin(x) - 2*cos(y)**2 + 3*tan(z)**3)**20)",
@@ -97,11 +95,15 @@ class GraphComponent:
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot(*[(expr, (-5, 5)) for expr in self.inputs], show=False)
+        p = sympy.plotting.plot(*[(expr, (-5, 5)) for expr in self.inputs if expr is not None], show=False)
         p.process_series()
 
         canvas = p.fig.canvas
         canvas.draw()
+        w, h = canvas.get_width_height()
+        self.graph = np.frombuffer(
+            canvas.buffer_rgba().tobytes(), dtype=np.uint8
+        ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
         p.save("graph.png")
         p.close()
 
