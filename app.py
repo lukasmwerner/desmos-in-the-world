@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from screeninfo import get_monitors
 from components import GeminiComponent
 import geometry
-import components
+from components import *
 from shapely.geometry import Point, Polygon, LineString
 
 
@@ -80,12 +80,12 @@ def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        component = components.GraphComponent(id, box, frame, [], sympy.abc.x**2, None)
+        component = GraphComponent(id, box, frame, [], sympy.abc.x**2, None)
         component.eqn_to_bytearray()
         return component
     elif category == 1:
         # Equations
-        return components.EquationComponent(id, box, frame)
+        return EquationComponent(id, box, frame)
     elif category == 2:
         # Add
         pass
@@ -94,7 +94,7 @@ def create_component(id, box, frame):
         pass
     else:
         # Gemini
-        return components.GeminiComponent()
+        return GeminiComponent()
 
 
 def process_components(components, blank_frame, camera_to_monitor, connections):
@@ -112,14 +112,14 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
         component_id = q.popleft()
 
         if (
-            isinstance(components[component_id], components.EquationComponent)
+            isinstance(components[component_id], EquationComponent)
             and (component_id in connections)
             and isinstance(
-                components[connection[component_id]], components.GraphComponent
+                components[connection[component_id]], GraphComponent
             )
         ):
             components[connections[component_id]].inputs.append(
-                components.tags_dict[components[component_id].id]
+                tags_dict[components[component_id].id]
             )
 
         if hasattr(components[component_id], "render"):
@@ -130,7 +130,7 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
             if (
                 isinstance(components[component_id], GeminiComponent)
                 and (not components[component_id].expired)
-                and isinstance(target, components.EquationComponent)
+                and isinstance(target, EquationComponent)
             ):
                 target.inputs.append(components[component_id].compute_content())
                 components[component_id].expire()
