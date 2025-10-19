@@ -70,6 +70,7 @@ class EquationComponent:
 
         client = make_gemini_client()
         img = Image.fromarray(warped_image)
+        self.does_output = True
         try:
             eqn = sympy.sympify(
                 client.models.generate_content(
@@ -81,13 +82,31 @@ class EquationComponent:
                 ).text
             )
             tags_dict[self.id] = eqn
-        except ValueError as e:
-            return ""
+
+            # Make sure this function can be plotted
+            sympy.plotting.plot((eqn, (-5, 5)), show=False)
+        except:
+            self.does_output = False
 
         self.computed = eqn
         self.task = None
 
         return eqn
+
+    # Draw a red box over the equation if it isn't valid
+    def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        if self.does_output:
+            return
+
+        # Map the box inner corners from camera -> monitor
+        camera_box = self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
+        monitor_box = (
+            cv2.perspectiveTransform(camera_box, camera_to_monitor)
+            .reshape(-1, 2)
+            .astype(np.int32)
+        )
+
+        cv2.fillPoly(canvas_bgr, [monitor_box], color=(0, 0, 255))
 
 
 @dataclass
