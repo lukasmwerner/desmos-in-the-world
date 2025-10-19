@@ -28,7 +28,7 @@ class EquationComponent:
     id: int
     box: Box
     frame: np.ndarray
-    connects_to = None
+    does_output = True
 
     # Warp box to a rectangle
     # pass to gemini.py
@@ -87,14 +87,14 @@ class GraphComponent:
     box: Box
     frame: np.ndarray
     inputs: list
-    connects_to = None
     equation: sympy.Expr
-    graph: typing.Any
+    graph: dict = field(default_factory=dict)
+    does_output = False
 
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot((self.equation,  (-5, 5)), show=False)
+        p = sympy.plotting.plot((self.equation, (-5, 5)), show=False)
         p.process_series()
 
         canvas = p.fig.canvas

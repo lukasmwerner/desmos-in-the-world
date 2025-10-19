@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from screeninfo import get_monitors
 import geometry
 import components
+from shapely.geometry import Point, Polygon, LineString
 
 
 def main():
@@ -53,7 +54,8 @@ def main():
                     )
                     components[id] = create_component(id, box, frame)
 
-        process_components(components, blank_frame, camera_to_monitor)
+        connections = connect_components(components, blank_frame, camera_to_monitor)
+        process_components(components, blank_frame, camera_to_monitor, connections)
         cv2.imshow(win_name, blank_frame)
 
     source.release()
@@ -81,11 +83,10 @@ def create_component(id, box, frame):
         pass
 
 
-def process_components(components, blank_frame, camera_to_monitor):
+def process_components(components, blank_frame, camera_to_monitor, connections):
     indegrees = defaultdict(int)
-    for component_id in components:
-        if components[component_id].connects_to is not None:
-            indegrees[components[component_id].connects_to] += 1
+    for component_id in connections:
+        indegrees[connections[component_id]] += 1
 
     q = deque()
 
@@ -99,16 +100,95 @@ def process_components(components, blank_frame, camera_to_monitor):
         # process component
         if hasattr(components[component_id], "get_content"):
             content = components[component_id].get_content()
-            if components[component_id].connects_to is not None:
-                if hasattr(components[component_id].connects_to, "inputs"):
-                    components[component_id].connects_to.inputs.append(content)
+            if component_id in connections:
+                if hasattr(components[connections[component_id]], "inputs"):
+                    components[connections[component_id]].inputs.append(content)
+
         if hasattr(components[component_id], "render"):
             components[component_id].render(blank_frame, camera_to_monitor)
 
-        if components[component_id].connects_to is not None:
-            indegrees[components[component_id].connects_to] -= 1
-            if indegrees[components[component_id].connects_to] == 0:
-                q.append(components[component_id].connects_to)
+        if component_id in connections:
+            indegrees[connections[component_id]] -= 1
+            if indegrees[connections[component_id]] == 0:
+                q.append(connections[component_id])
+
+
+def connect_components(components, blank_frame, camera_to_monitor):
+    connections = {}
+
+    for component_id in components:
+        component = components[component_id]
+        outer_points = component.box.outer_coordinates()
+        # transform outer points from camera to monitor plane using homography
+        pts = outer_points.astype(np.float32).reshape(-1, 1, 2)
+        transformed_pts = cv2.perspectiveTransform(pts, camera_to_monitor).reshape(
+            -1, 2
+        )
+        top_left, top_right, _, _ = transformed_pts
+
+        for other_component_id in components:
+            other_component = components[other_component_id]
+            if component_id == other_component_id:
+                continue
+
+            other_outer_points = other_component.box.outer_coordinates()
+            pts2 = other_outer_points.astype(np.float32).reshape(-1, 1, 2)
+            transformed_other = cv2.perspectiveTransform(
+                pts2, camera_to_monitor
+            ).reshape(-1, 2)
+            other_outer_points = transformed_other
+
+            midpoint = (top_left + top_right) / 2.0
+
+            vector_top = top_left - top_right
+            vector_scale = 3.0
+            orthogonal_vector = np.array(
+                [-vector_top[1] * vector_scale, vector_top[0] * vector_scale],
+                dtype=np.float32,
+            )
+
+            # Build shapely geometries from transformed monitor coordinates
+            line = LineString([tuple(midpoint), tuple((midpoint + orthogonal_vector))])
+            other_shape = Polygon(other_outer_points.tolist())
+
+            intersection = line.intersection(other_shape)
+
+            if not intersection.is_empty:
+                connections[component_id] = other_component_id
+
+            # extract a point to draw to (if available)
+            found = None
+            if intersection.is_empty:
+                found = None
+            elif intersection.geom_type == "Point":
+                found = (intersection.x, intersection.y)
+            elif intersection.geom_type in ("LineString", "LinearRing"):
+                found = tuple(intersection.coords)[0]
+            else:
+                # try to get first geometry
+                try:
+                    geoms = list(intersection.geoms)
+                    for g in geoms:
+                        if g.geom_type == "Point":
+                            found = (g.x, g.y)
+                            break
+                        if g.geom_type in ("LineString", "LinearRing"):
+                            found = tuple(g.coords)[0]
+                            break
+                except Exception:
+                    found = None
+
+            if found is None:
+                line_end = (midpoint + orthogonal_vector).astype(np.float32)
+            else:
+                line_end = np.array(found, dtype=np.float32)
+
+            # draw using integer pixel coordinates
+            p1 = tuple(np.round(midpoint).astype(int))
+            p2 = tuple(np.round(line_end).astype(int))
+            cv2.line(blank_frame, p1, p2, (0, 255, 255), 5)
+
+    return connections
 
 
 if __name__ == "__main__":
