@@ -4,6 +4,7 @@ import math
 
 from geometry import Box
 
+import asyncio
 import cv2
 import numpy as np
 import os
@@ -55,6 +56,8 @@ class EquationComponent:
         if self.computed is not None:
             return self.computed
 
+        await asyncio.sleep(0)
+
         # Define destination points (a rectangle)
         dest = np.array(
             [
@@ -96,7 +99,7 @@ class EquationComponent:
             self.does_output = False
 
         self.computed = eqn
-        self.task = None
+        # self.task = None
         self.thinking = False
 
         return eqn
