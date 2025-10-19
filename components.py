@@ -248,3 +248,61 @@ class AddComponent:
 
         # Paste onto canvas
         canvas_bgr[mask_bool] = warped[mask_bool]
+
+
+@dataclass
+class MultiplyComponent:
+    id: int
+    box: Box
+    inputs: set = field(default_factory=set)
+    does_output = True
+
+    def get_equation(self):
+        return math.prod(self.inputs)
+
+    def compute_content(self):
+        return self.get_equation()
+
+    def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        equation = self.get_equation()
+        latex = sympy.latex(equation)
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.text(0.5, 0.5, f"${latex}$", fontsize=30, va="center", ha="center")
+        ax.axis("off")
+        fig.tight_layout()
+        plt.savefig("latex.png")
+
+        latex_img = cv2.imread("latex.png")
+        lh, lw = latex_img.shape[:2]
+        source = np.array([[0, 0], [lw, 0], [lw, lh], [0, lh]], dtype=np.float32)
+
+        # Map the box inner corners from camera -> monitor
+        inner_cam = self.box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2)
+        inner_mon = (
+            cv2.perspectiveTransform(inner_cam, camera_to_monitor)
+            .reshape(-1, 2)
+            .astype(np.float32)
+        )
+
+        # Homography: latex image -> monitor space
+        H_graph_to_monitor = cv2.getPerspectiveTransform(source, inner_mon)
+
+        out_h, out_w = canvas_bgr.shape[:2]
+        warped = cv2.warpPerspective(
+            latex_img,
+            H_graph_to_monitor,
+            (out_w, out_h),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=(0, 0, 0),
+        )
+
+        # Simple binary mask: copy non-black pixels
+        mask = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)
+        mask_bool = mask.astype(bool)
+
+        # Paste onto canvas
+        canvas_bgr[mask_bool] = warped[mask_bool]

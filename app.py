@@ -115,8 +115,10 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
             components[component_id].task = asyncio.create_task(
                 components[component_id].compute_content()
             )
-        elif isinstance(components[component_id], GraphComponent) or isinstance(
-            components[component_id], AddComponent
+        elif (
+            isinstance(components[component_id], GraphComponent)
+            or isinstance(components[component_id], AddComponent)
+            or isinstance(components[component_id], MultiplyComponent)
         ):
             components[component_id].inputs.clear()
         if indegrees[component_id] == 0:
@@ -138,7 +140,10 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
             )
 
         if (
-            isinstance(components[component_id], AddComponent)
+            (
+                isinstance(components[component_id], AddComponent)
+                or isinstance(components[component_id], MultiplyComponent)
+            )
             and (component_id in connections)
             and hasattr(components[connections[component_id]], "inputs")
         ):
