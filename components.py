@@ -106,6 +106,7 @@ class GraphComponent:
         p.save('graph.png')
         p.close()
 
+
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
