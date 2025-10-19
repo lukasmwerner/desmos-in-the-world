@@ -120,11 +120,16 @@ class GraphComponent:
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        for expr in self.inputs:
-            if expr not in self.old_inputs:
-                self.eqn_to_bytearray()
-                break
-        self.old_inputs = {item for item in self.inputs}
+        # print(inputs)
+        # Rerender if the inputs are different
+        # if len(self.inputs) != len(self.old_inputs):
+        #     self.eqn_to_bytearray()
+        # else:
+        #     for expr in self.inputs:
+        #         if expr not in self.old_inputs:
+        self.eqn_to_bytearray()
+        #             break
+        # self.old_inputs = self.inputs
 
         graph_bgr = cv2.imread(f"graph_{id}.png", cv2.IMREAD_COLOR)
         gh, gw = graph_bgr.shape[:2]
