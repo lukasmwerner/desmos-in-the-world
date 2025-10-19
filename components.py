@@ -87,28 +87,34 @@ class GraphComponent:
     box: Box
     frame: np.ndarray
     inputs: list
-    equation: sympy.Expr
     graph: dict = field(default_factory=dict)
     does_output = False
+    old_inputs: set = set()
 
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot((self.equation, (-5, 5)), show=False)
+        p = sympy.plotting.plot(*[(expr, (-5, 5)) for expr in self.inputs], show=False)
         p.process_series()
 
         canvas = p.fig.canvas
         canvas.draw()
-        w, h = canvas.get_width_height()
-        self.graph = np.frombuffer(
-            canvas.buffer_rgba().tobytes(), dtype=np.uint8
-        ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
         p.save("graph.png")
         p.close()
 
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
+        # Rerender if the inputs are different
+        if len(self.inputs) != len(self.old_inputs):
+            self.eqn_to_bytearray()
+        else:
+            for expr in self.inputs:
+                if expr not in self.old_inputs:
+                    self.eqn_to_bytearray()
+                    break
+        self.old_inputs = set(self.inputs)
+
         graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
         gh, gw = graph_bgr.shape[:2]
         source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
