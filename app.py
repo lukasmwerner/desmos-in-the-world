@@ -112,6 +112,7 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
             q.append(component_id)
 
     while q:
+        await asyncio.sleep(0)
         component_id = q.popleft()
 
         if (

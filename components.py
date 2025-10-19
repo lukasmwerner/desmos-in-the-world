@@ -13,9 +13,7 @@ from google import genai
 from dotenv import load_dotenv
 from PIL import Image
 
-tags_dict = {}
-for i in range(200, 400):
-    tags_dict[i] = None
+tags_dict = {i: None for i in range(200, 400)}
 
 
 def make_gemini_client():
@@ -97,7 +95,7 @@ class GraphComponent:
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot(*[(expr, (-5, 5)) for expr in self.inputs], show=False)
+        p = sympy.plotting.plot(*[(expr, (-5, 5)) for expr in self.inputs if expr is not None], show=False)
         p.process_series()
 
         canvas = p.fig.canvas
