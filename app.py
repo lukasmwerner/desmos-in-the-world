@@ -78,7 +78,8 @@ def create_component(id, box, frame):
     elif category == 1:
         # Equations
         component = components.EquationComponent(id, box, frame)
-        component.get_content()
+        if (component.get_content() == ""):
+            return None
     elif category == 2:
         # Add
         pass
