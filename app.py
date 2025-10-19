@@ -57,7 +57,8 @@ while cv2.waitKey(1) != ord("q"):
 
     for box in boxes:
         inner_coordinates = cv2.perspectiveTransform(
-            box.inner_coordinates().reshape(-1, 1, 2), camera_to_monitor
+            box.inner_coordinates().astype(np.float32).reshape(-1, 1, 2),
+            camera_to_monitor,
         )
 
         cv2.polylines(
