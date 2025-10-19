@@ -20,7 +20,7 @@ cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
 cv2.setWindowProperty(win_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 
-with open("camera_to_monitor.pck", "rb") as pickle_file:
+with open("homography/camera_to_monitor.pck", "rb") as pickle_file:
     camera_to_monitor = pickle.load(pickle_file)
 
 
@@ -68,7 +68,7 @@ while cv2.waitKey(1) != ord("q"):
             20,
         )
 
-    cv2.imshow(win_name, frame)
+    cv2.imshow(win_name, blank_frame)
 
 source.release()
 cv2.destroyAllWindows()
