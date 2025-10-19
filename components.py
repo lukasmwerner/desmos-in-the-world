@@ -61,6 +61,8 @@ class EquationComponent:
         client = make_gemini_client()
         img = Image.fromarray(warped_image)
         try:
+            if tags_dict[self.id] == None:
+                raise ValueError()
             eqn = sympy.sympify(client.models.generate_content(
                 model='gemini-2.5-flash',
                 contents=[
