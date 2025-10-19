@@ -82,15 +82,18 @@ class EquationComponent:
 
 @dataclass
 class GraphComponent:
-    id: int
-    box: Box
-    frame: np.ndarray
-    inputs: list
-    connects_to = None
-    equation: sympy.Expr
-    graph: dict = {}
-
     DISPLAY_DENSITY = 1
+
+    def __init__(self, id: int, box: Box, equation: sympy.Expr, frame: np.ndarray):
+        self.id = id
+        self.box = box
+        self.equation = equation
+        self.frame = frame
+
+        self.inputs = list()
+        self.graph = dict()
+
+        self.connects_to = None
 
     def eqn_to_bytearray(self) -> None:
         p = sympy.plotting.plot(self.equation, (sympy.abc.x, (-5, 5)), show=False)
