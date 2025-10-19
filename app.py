@@ -26,6 +26,9 @@ def main():
     with open("homography/camera_to_monitor.pck", "rb") as pickle_file:
         camera_to_monitor = pickle.load(pickle_file)
 
+
+    components = {}
+
     while cv2.waitKey(1) != ord("q"):
         has_frame, frame = source.read()
         blank_frame = np.zeros((monitor.height, monitor.width, 3), dtype=np.uint8)
@@ -43,7 +46,7 @@ def main():
             )
         )
 
-        components = {}
+        new_ids = set()
 
         for id, corner in corners.items():
             if id % 4 == 0:
@@ -52,7 +55,17 @@ def main():
                     box = geometry.Box(
                         *(geometry.Marker(*corners[pid]) for pid in possible_ids)
                     )
-                    components[id] = create_component(id, box, frame)
+                    if id in components:
+                        components[id].box = box
+                    else:
+                        components[id] = create_component(id, box, frame)
+
+                    new_ids.add(id)
+
+        for key in components.keys():
+            if key not in new_ids:
+                del components[key]
+
 
         connections = connect_components(components, blank_frame, camera_to_monitor)
         process_components(components, blank_frame, camera_to_monitor, connections)
