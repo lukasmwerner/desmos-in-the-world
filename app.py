@@ -78,7 +78,7 @@ def create_component(id, box, frame, canvas_bgr, camera_to_monitor):
         component.render(canvas_bgr, camera_to_monitor)
     elif category == 1:
         # Equations
-        component = components.EquationComponent(box, frame)
+        component = components.EquationComponent(id, box, frame)
         component.get_content()
     elif category == 2:
         # Add
