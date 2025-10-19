@@ -100,7 +100,7 @@ class GraphComponent:
         canvas = p.fig.canvas
         canvas.draw()
         w, h = canvas.get_width_height()
-        self.graph[self.equation] = np.frombuffer(
+        self.graph = np.frombuffer(
             canvas.buffer_rgba().tobytes(), dtype=np.uint8
         ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
         p.close()
