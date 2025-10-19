@@ -161,3 +161,14 @@ class GraphComponent:
 
         # Paste onto canvas
         canvas_bgr[mask_bool] = warped[mask_bool]
+
+
+@dataclass
+class AddComponent:
+    id: int
+    box: Box
+    inputs: set = field(default_factory=set)
+    does_output = True
+
+    def compute_content(self):
+        return sum(list(self.inputs), 0)
