@@ -67,6 +67,10 @@ async def main():
             if key not in new_ids:
                 del components[key]
 
+        for component_id in components:
+            if hasattr(components[component_id], "compute_content"):
+                components[component_id].compute_content()
+
         connections = connect_components(components, blank_frame, camera_to_monitor)
         await process_components(
             components, blank_frame, camera_to_monitor, connections
