@@ -6,6 +6,7 @@ import sympy.abc
 import os
 from dotenv import load_dotenv
 from screeninfo import get_monitors
+from components import GeminiComponent
 import geometry
 import components
 from shapely.geometry import Point, Polygon, LineString
@@ -93,7 +94,7 @@ def create_component(id, box, frame):
         pass
     else:
         # Gemini
-        pass
+        return components.GeminiComponent()
 
 
 def process_components(components, blank_frame, camera_to_monitor, connections):
@@ -110,17 +111,30 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
     while q:
         component_id = q.popleft()
 
-        # process component
-        if hasattr(components[component_id], "get_content"):
-            content = components[component_id].get_content()
-            if component_id in connections:
-                if hasattr(components[connections[component_id]], "inputs"):
-                    components[connections[component_id]].inputs.append(content)
+        if (
+            isinstance(components[component_id], components.EquationComponent)
+            and (component_id in connections)
+            and isinstance(
+                components[connection[component_id]], components.GraphComponent
+            )
+        ):
+            components[connections[component_id]].inputs.append(
+                components.tags_dict[components[component_id].id]
+            )
 
         if hasattr(components[component_id], "render"):
             components[component_id].render(blank_frame, camera_to_monitor)
 
         if component_id in connections:
+            target = components[connections[component_id]]
+            if (
+                isinstance(components[component_id], GeminiComponent)
+                and (not components[component_id].expired)
+                and isinstance(target, components.EquationComponent)
+            ):
+                target.inputs.append(components[component_id].compute_content())
+                components[component_id].expire()
+
             indegrees[connections[component_id]] -= 1
             if indegrees[connections[component_id]] == 0:
                 q.append(connections[component_id])

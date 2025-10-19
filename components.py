@@ -33,7 +33,7 @@ class EquationComponent:
     # Warp box to a rectangle
     # pass to gemini.py
     # returns a sympy object
-    def get_content(self):
+    def compute_content(self):
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
 
@@ -142,3 +142,11 @@ class GraphComponent:
 
         # Paste onto canvas
         canvas_bgr[mask_bool] = warped[mask_bool]
+
+
+@dataclass
+class GeminiComponent:
+    expired: bool = False
+
+    def expire(self):
+        expired = True
