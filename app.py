@@ -64,7 +64,9 @@ def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        return components.GraphComponent(id, box, frame, [], sympy.abc.x**2)
+        component = components.GraphComponent(id, box, frame, [], sympy.abc.x**2)
+        component.eqn_to_bytearray()
+        return component
     elif category == 1:
         # Equations
         return components.EquationComponent(id, box, frame)

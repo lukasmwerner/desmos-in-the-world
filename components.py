@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import os
 import sympy
+import typing
 from google import genai
 from dotenv import load_dotenv
 from PIL import Image
@@ -88,13 +89,12 @@ class GraphComponent:
     inputs: list
     connects_to = None
     equation: sympy.Expr
-    graph: dict = field(default_factory=dict)
+    graph: typing.Any
 
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot((self.equation,  (-5, 5)), show=False, size=(0.932, 0.720))
-        # p.show()
+        p = sympy.plotting.plot((self.equation,  (-5, 5)), show=False)
         p.process_series()
 
         canvas = p.fig.canvas
@@ -108,11 +108,7 @@ class GraphComponent:
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        if self.equation not in self.graph:
-            self.eqn_to_bytearray()
-        to_draw = self.graph[self.equation]
-
-        gh, gw = to_draw.shape[:2]
+        gh, gw = self.graph.shape[:2]
         source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
 
         # Map the box inner corners from camera -> monitor
@@ -128,7 +124,7 @@ class GraphComponent:
 
         out_h, out_w = canvas_bgr.shape[:2]
         warped = cv2.warpPerspective(
-            to_draw,
+            self.graph,
             H_graph_to_monitor,
             (out_w, out_h),
             flags=cv2.INTER_LINEAR,
