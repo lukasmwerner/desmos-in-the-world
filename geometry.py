@@ -1,6 +1,8 @@
 import typing
 from dataclasses import dataclass
 
+import numpy as np
+
 
 @dataclass
 class Marker:
