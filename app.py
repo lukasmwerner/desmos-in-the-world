@@ -126,8 +126,9 @@ def connect_components(components, blank_frame, camera_to_monitor):
         )
         top_left, top_right, _, _ = transformed_pts
 
-        for other_component in components:
-            if component is other_component:
+        for other_component_id in components:
+            other_component = components[other_component_id]
+            if component_id == other_component_id:
                 continue
 
             other_outer_points = other_component.box.outer_coordinates()
