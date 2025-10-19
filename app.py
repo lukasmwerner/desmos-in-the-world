@@ -68,7 +68,9 @@ async def main():
                 del components[key]
 
         connections = connect_components(components, blank_frame, camera_to_monitor)
-        await process_components(components, blank_frame, camera_to_monitor, connections)
+        await process_components(
+            components, blank_frame, camera_to_monitor, connections
+        )
 
         # Draw border
         cv2.rectangle(
@@ -185,12 +187,12 @@ def connect_components(components, blank_frame, camera_to_monitor):
             intersection = line.intersection(other_shape)
 
             if not intersection.is_empty:
-                connections[component_id] = other_component_id
                 possible_point = np.round(intersection.coords[0]).astype(int)
-                possible_dist = np.sum(np.absolute(p2 - p1))
+                possible_dist = np.sum(np.absolute(possible_point - p1))
                 # if there are multiple intersections, choose the
                 # one with the lowest manhattan distance
                 if possible_dist < min_dist:
+                    connections[component_id] = other_component_id
                     p2 = possible_point
                     min_dist = possible_dist
 
