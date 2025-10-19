@@ -30,14 +30,10 @@ while cv2.waitKey(1) != ord("q"):
     if not has_frame:
         break
 
-    # cv2.imshow(win_name, frame)
-
     marker_corners, marker_ids, rejectedImgs = aruco_detector.detectMarkers(frame)
-    # detected_marker_img = cv2.aruco.drawDetectedMarkers(frame, marker_corners, marker_ids)
 
     if marker_ids is None:
         continue
-    print("fooey bary bazy")
 
     # print(marker_corners)
     corners = dict(
