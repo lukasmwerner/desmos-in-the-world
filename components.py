@@ -86,7 +86,7 @@ class EquationComponent:
             return ""
 
         self.computed = eqn
-        
+
         self.loading = False
 
         return eqn
@@ -180,8 +180,12 @@ class AddComponent:
         equation = sum(list(self.inputs), 0)
         latex = sympy.latex(equation)
 
-        plt.text(0, 0, f"${latex}$")
-        plt.imsave("latex.png")
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.text(0.5, 0.5, f"${latex}$", fontsize=30, va="center", ha="center")
+        ax.axis("off")
+        fig.tight_layout()
+        plt.savefig("latex.png")
 
         latex_img = cv2.imread("latex.png")
         lh, lw = latex_img.shape[:2]
