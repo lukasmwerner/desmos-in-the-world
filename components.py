@@ -1,5 +1,5 @@
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import math
 
 from geometry import Box
@@ -88,7 +88,7 @@ class GraphComponent:
     inputs: list
     connects_to = None
     equation: sympy.Expr
-    graph: dict = {}
+    graph: dict = field(default_factory=dict)
 
     DISPLAY_DENSITY = 1
 
@@ -99,9 +99,9 @@ class GraphComponent:
         canvas = p.fig.canvas
         canvas.draw()
         w, h = canvas.get_width_height()
-        self.graph[self.equation] = np \
-            .frombuffer(canvas.buffer_rgba().tobytes(), dtype=np.uint8) \
-            .reshape((w*self.DISPLAY_DENSITY, h*self.DISPLAY_DENSITY, 4))[:, :, 1:]
+        self.graph[self.equation] = np.frombuffer(
+            canvas.buffer_rgba().tobytes(), dtype=np.uint8
+        ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
 
     # Render a graph on the picture
     # warped to the box.
