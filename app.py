@@ -152,7 +152,7 @@ async def process_components(components, blank_frame, camera_to_monitor, connect
             and (component_id in connections)
             and hasattr(components[connections[component_id]], "inputs")
         ):
-            print(components[component_id].compute_content())
+            #print(components[component_id].compute_content())
             components[connections[component_id]].inputs.add(
                 components[component_id].compute_content()
             )
