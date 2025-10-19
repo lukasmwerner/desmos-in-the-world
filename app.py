@@ -116,7 +116,8 @@ def process_components(components, blank_frame, camera_to_monitor, connections):
 def connect_components(components, blank_frame, camera_to_monitor):
     connections = {}
 
-    for component in components:
+    for component_id in components:
+        component = components[component_id]
         outer_points = component.box.outer_coordinates()
         # transform outer points from camera to monitor plane using homography
         pts = np.array(outer_points, dtype=np.float32).reshape(-1, 1, 2)
