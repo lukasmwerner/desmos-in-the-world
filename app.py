@@ -2,7 +2,7 @@ from collections import defaultdict, deque
 import pickle
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
+import sympy.abc
 import os
 from dotenv import load_dotenv
 from screeninfo import get_monitors
@@ -64,7 +64,8 @@ def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        return components.GraphComponent(id, box, frame, [])
+        return component = components.GraphComponent(id, box, frame, [], sympy.abc.x ** 2)
+        # component.render(canvas_bgr, camera_to_monitor)
     elif category == 1:
         # Equations
         return components.EquationComponent(id, box, frame)

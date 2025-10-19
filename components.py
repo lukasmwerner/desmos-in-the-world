@@ -1,16 +1,16 @@
+from collections import defaultdict
 from dataclasses import dataclass
 import math
 
-import cv2
-import numpy as np
-
 from geometry import Box
 
+import cv2
+import numpy as np
 import os
+import sympy
 from google import genai
 from dotenv import load_dotenv
 from PIL import Image
-import sympy
 
 tags_dict = {}
 for i in range(200, 400):
@@ -87,13 +87,30 @@ class GraphComponent:
     frame: np.ndarray
     inputs: list
     connects_to = None
+    equation: sympy.Expr
+    graph: dict = {}
+
+    DISPLAY_DENSITY = 1
+
+    def eqn_to_bytearray(self) -> None:
+        p = sympy.plotting.plot(self.equation, (sympy.abc.x, (-5, 5)), show=False)
+        p.process_series()
+
+        canvas = p.fig.canvas
+        canvas.draw()
+        w, h = canvas.get_width_height()
+        self.graph[self.equation] = np \
+            .frombuffer(canvas.buffer_rgba().tobytes(), dtype=np.uint8) \
+            .reshape((w*self.DISPLAY_DENSITY, h*self.DISPLAY_DENSITY, 4))[:, :, 1:]
 
     # Render a graph on the picture
     # warped to the box.
     def render(self, canvas_bgr: np.ndarray, camera_to_monitor: np.ndarray):
-        graph_bgr = cv2.imread("graph.png", cv2.IMREAD_COLOR)
+        if self.equation not in self.graph:
+            self.eqn_to_bytearray()
+        to_draw = self.graph[self.equation]
 
-        gh, gw = graph_bgr.shape[:2]
+        gh, gw = to_draw.shape[:2]
         source = np.array([[0, 0], [gw, 0], [gw, gh], [0, gh]], dtype=np.float32)
 
         # Map the box inner corners from camera -> monitor
@@ -109,7 +126,7 @@ class GraphComponent:
 
         out_h, out_w = canvas_bgr.shape[:2]
         warped = cv2.warpPerspective(
-            graph_bgr,
+            to_draw,
             H_graph_to_monitor,
             (out_w, out_h),
             flags=cv2.INTER_LINEAR,
