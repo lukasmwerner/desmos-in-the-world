@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from screeninfo import get_monitors
 import geometry
 import components
-import shapely
+from shapely.geometry import Point, Polygon, LineString
 
 
 def main():
@@ -120,7 +120,7 @@ def connect_components(components, blank_frame, camera_to_monitor):
         component = components[component_id]
         outer_points = component.box.outer_coordinates()
         # transform outer points from camera to monitor plane using homography
-        pts = np.array(outer_points, dtype=np.float32).reshape(-1, 1, 2)
+        pts = outer_points.astype(np.float32).reshape(-1, 1, 2)
         transformed_pts = cv2.perspectiveTransform(pts, camera_to_monitor).reshape(
             -1, 2
         )
@@ -132,48 +132,61 @@ def connect_components(components, blank_frame, camera_to_monitor):
                 continue
 
             other_outer_points = other_component.box.outer_coordinates()
-            pts = np.array(other_outer_points, dtype=np.float32).reshape(-1, 1, 2)
+            pts2 = other_outer_points.astype(np.float32).reshape(-1, 1, 2)
             transformed_other = cv2.perspectiveTransform(
-                pts, camera_to_monitor
+                pts2, camera_to_monitor
             ).reshape(-1, 2)
             other_outer_points = transformed_other
 
-            midpoint = np.divide(top_left + top_right, 2)
+            midpoint = (top_left + top_right) / 2.0
 
             vector_top = top_left - top_right
-            vector_scale = 3
+            vector_scale = 3.0
             orthogonal_vector = np.array(
-                [-vector_top[1] * vector_scale, vector_top[0] * vector_scale]
+                [-vector_top[1] * vector_scale, vector_top[0] * vector_scale],
+                dtype=np.float32,
             )
 
-            line = shapely.Point(midpoint, midpoint + orthogonal_vector)
-            other_shape = shapely.Polygon(other_component.box.outer_coordinates)
+            # Build shapely geometries from transformed monitor coordinates
+            line = LineString([tuple(midpoint), tuple((midpoint + orthogonal_vector))])
+            other_shape = Polygon(other_outer_points.tolist())
 
-            intersection = shapely.intersection(line, other_shape)
+            intersection = line.intersection(other_shape)
 
             if not intersection.is_empty:
-                connections[component] = other_component
+                connections[component_id] = other_component_id
 
-            if hasattr(intersection, "geoms"):
-                geoms = list(intersection.geoms)
-            else:
-                geoms = [intersection]
-
+            # extract a point to draw to (if available)
             found = None
-            for g in geoms:
-                if g.geom_type in ("Point",):
-                    found = (g.x, g.y)
-                    break
-                if g.geom_type in ("LineString", "LinearRing"):
-                    found = tuple(g.coords)[0]
-                    break
+            if intersection.is_empty:
+                found = None
+            elif intersection.geom_type == "Point":
+                found = (intersection.x, intersection.y)
+            elif intersection.geom_type in ("LineString", "LinearRing"):
+                found = tuple(intersection.coords)[0]
+            else:
+                # try to get first geometry
+                try:
+                    geoms = list(intersection.geoms)
+                    for g in geoms:
+                        if g.geom_type == "Point":
+                            found = (g.x, g.y)
+                            break
+                        if g.geom_type in ("LineString", "LinearRing"):
+                            found = tuple(g.coords)[0]
+                            break
+                except Exception:
+                    found = None
 
             if found is None:
-                line_end = np.array(midpoint + orthogonal_vector, dtype=np.float32)
+                line_end = (midpoint + orthogonal_vector).astype(np.float32)
             else:
                 line_end = np.array(found, dtype=np.float32)
 
-            cv2.line(blank_frame, midpoint, line_end, (0, 255, 255), 5)
+            # draw using integer pixel coordinates
+            p1 = tuple(np.round(midpoint).astype(int))
+            p2 = tuple(np.round(line_end).astype(int))
+            cv2.line(blank_frame, p1, p2, (0, 255, 255), 5)
 
     return connections
 
