@@ -83,7 +83,7 @@ def create_component(id, box, frame):
     category = id // 200
     if category == 0:
         # Graph
-        component = GraphComponent(id, box, frame, [], sympy.abc.x**2, None)
+        component = GraphComponent(id, box, frame, set(), sympy.abc.x**2, None)
         component.eqn_to_bytearray()
         return component
     elif category == 1:

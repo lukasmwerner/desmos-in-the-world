@@ -36,8 +36,8 @@ class EquationComponent:
     # pass to gemini.py
     # returns a sympy object
     def compute_content(self):
-        if computed is not None:
-            return computed
+        if self.computed is not None:
+            return self.computed
 
         # Get source coordinates (inner corners of the box)
         src = self.box.inner_coordinates().astype(np.float32)
@@ -68,8 +68,6 @@ class EquationComponent:
         client = make_gemini_client()
         img = Image.fromarray(warped_image)
         try:
-            if tags_dict[self.id] != None:
-                raise ValueError()
             eqn = sympy.sympify(
                 client.models.generate_content(
                     model="gemini-2.5-flash",
@@ -83,7 +81,7 @@ class EquationComponent:
         except ValueError as e:
             return ""
 
-        computed = eqn
+        self.computed = eqn
         return eqn
 
 
