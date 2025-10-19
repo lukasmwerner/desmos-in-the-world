@@ -93,7 +93,8 @@ class GraphComponent:
     DISPLAY_DENSITY = 1
 
     def eqn_to_bytearray(self) -> None:
-        p = sympy.plotting.plot(self.equation, (sympy.abc.x, (-5, 5)), show=False)
+        p = sympy.plotting.plot((self.equation,  (-5, 5)), show=False, size=(0.932, 0.720))
+        # p.show()
         p.process_series()
 
         canvas = p.fig.canvas
@@ -102,6 +103,7 @@ class GraphComponent:
         self.graph[self.equation] = np.frombuffer(
             canvas.buffer_rgba().tobytes(), dtype=np.uint8
         ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
+        p.close()
 
     # Render a graph on the picture
     # warped to the box.
