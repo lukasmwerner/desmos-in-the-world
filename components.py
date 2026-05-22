@@ -137,16 +137,18 @@ class GraphComponent:
         p = sympy.plotting.plot(
             *[(expr, (-5, 5)) for expr in self.inputs if expr is not None], show=False
         )
+        try:
+            p.process_series()
 
-        p.process_series()
-
-        canvas = p.fig.canvas
-        canvas.draw()
-        w, h = canvas.get_width_height()
-        self.graph = np.frombuffer(
-            canvas.buffer_rgba().tobytes(), dtype=np.uint8
-        ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
-        p.save(f"graph_{id}.png")
+            canvas = p.fig.canvas
+            canvas.draw()
+            w, h = canvas.get_width_height()
+            self.graph = np.frombuffer(
+                canvas.buffer_rgba().tobytes(), dtype=np.uint8
+            ).reshape((w * self.DISPLAY_DENSITY, h * self.DISPLAY_DENSITY, 4))[:, :, 1:]
+            p.save(f"graph_{id}.png")
+        except Exception:
+            pass
         p.close()
 
     # Render a graph on the picture
